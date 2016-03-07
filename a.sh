@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /home/pi/revolution
+cd /home/pi/Graspio
 sudo python _maincode.py

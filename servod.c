@@ -163,7 +163,7 @@ typedef struct {
  * parameter '--p1pins=...'.
  */
 
-static char *default_p1_pins = "7,11,12,13,15,16,18,22";
+static char *default_p1_pins = "11,12,5,7,16,15,13,18";
 static char *default_p5_pins = "";
 
 static uint8_t rev1_p1pin2gpio_map[] = {

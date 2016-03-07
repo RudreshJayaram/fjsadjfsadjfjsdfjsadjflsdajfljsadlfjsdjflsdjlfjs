@@ -12,8 +12,7 @@ from json import dumps
 yureka_str = ""
 oldmax=0
 curmax = 0
-d=open("BT.txt","w")
-d.close()
+
 
 wifi_ok=0
 GPIO.setmode(GPIO.BCM)

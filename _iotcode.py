@@ -1,3 +1,109 @@
+# IOT CODE **************************************************************************************
+from urllib2 import urlopen, Request
+from time import mktime, sleep
+from datetime import datetime
+from json import dumps
+iotdata ="Y"
+yureka_str = ""
+oldmax=0
+curmax = 0
+String="Y"
+
+
+class Client (object):
+    api_url = "http://api.carriots.com/streams"
+
+    def __init__(self, api_key=None, client_type='json'):
+        self.client_type = client_type
+        self.api_key = api_key
+        self.content_type = "application/vnd.carriots.api.v2+%s" % self.client_type
+        self.headers = {'User-Agent': 'Raspberry-Carriots',
+                        'Content-Type': self.content_type,
+                        'Accept': self.content_type,
+                        'Carriots.apikey': self.api_key}
+        self.data = None
+        self.response = None
+
+    def send(self, data):
+        self.data = dumps(data)
+        request = Request(Client.api_url, self.data, self.headers)
+        self.response = urlopen(request)
+        return self.response
+
+def iotsend(ack):
+    device = "RPI@BOTRIO.BOTRIO"
+    apikey = "41d753080c1a2a72515e2fff11d116cdd8f7e91a5b3a2b278b9612af135edc71"  # Replace with your Carriots apikey
+    client_carriots = Client(apikey)
+    timestamp = int(mktime(datetime.utcnow().timetuple()))
+    data = {"protocol": "v2", "device": device, "at": timestamp, "data": dict(
+    light=ack)}
+    carriots_response = client_carriots.send(data)
+    print carriots_response.read()
+
+
+def readfile(filename):
+    global iot
+    global yureka_str
+    global String
+    file=open(filename,"r")
+    data =file.read()
+    print data
+    file.close()
+    list = re.findall("iot[\d][\d][\d]",data)
+    print list
+    numlist = []
+    for entry in list:
+                #rint int(entry[-3:])
+                numlist.append(int(entry[-3:]))
+    print numlist
+    curmax= max(numlist)
+    if curmax < 9 :
+	curmax = "00"+str(curmax)
+    elif curmax > 9 and curmax <100 :
+	curmax = "0"+str(curmax)
+    else:
+	curmax = str(curmax)	
+    yureka_str = "iot"+curmax+"(.*)~"
+    print yureka_str
+    matches = re.findall(yureka_str,data)
+    print matches
+    fo=open("iotoldmax.txt","r")
+    oldmax =fo.readline().strip()
+    fo.close()
+    fo=open("iotoldmax.txt","w")
+    fo.write(str(curmax))
+    fo.close()
+    print "************"
+    print oldmax
+    print "************"
+    print curmax
+    print "************"
+
+    if int(curmax) >int(oldmax):
+	
+	print "need correction"*100
+	print curmax
+	print oldmax
+	ifile=open("iotdata.txt","w")
+	ifile.write(matches[0])
+	ifile.close()
+	ffile=open("iotflag.txt","w")
+	ffile.write("1")
+	ffile.close()
+	print "here"
+        String = matches[0]
+        iotsend("iot"+str(curmax)+"ACK")
+
+    else:
+        print "fail"
+        String = "Y."
+    print  "output"+String
+def readfromcloud():
+	while True:
+		os.system("curl --header \"carriots.apikey:41d753080c1a2a72515e2fff11d116cdd8f7e91a5b3a2b278b9612af135edc71\" \"http://api.carriots.com/streams/?device=iPhone6Mobile@BOTRIO.BOTRIO\" > hi.txt ")
+		readfile("hi.txt")
+		#time.sleep(10)
+#************************************************** IOT CODE **************************************************************************************
 import socket
 import time
 import os
@@ -11,6 +117,7 @@ GPIO.setmode(GPIO.BCM)
 nflag = 0
 appdata = "Y"
  
+#%%%%%%%%%%%%%%%%%%% Servo %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 os.system('sudo ./servod')
 os.system("echo 0=50 > /dev/servoblaster")
 os.system("echo 1=50 > /dev/servoblaster")
@@ -20,7 +127,6 @@ os.system("echo 4=50 > /dev/servoblaster")
 os.system("echo 5=50 > /dev/servoblaster")
 os.system("echo 6=50 > /dev/servoblaster")
 os.system("echo 7=50 > /dev/servoblaster")
-
 S1OldAngle = 0
 S2OldAngle = 0
 S3OldAngle = 0
@@ -29,7 +135,8 @@ S5OldAngle = 0
 S6OldAngle = 0
 S7OldAngle = 0
 S8OldAngle = 0
-
+#%%%%%%%%%%%%%%%%%%% Servo %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+#@@@@@@@@@@@@@@@@ sensor @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 NoOfSensors =""
 SensorPort =""  
 ComparingValue = 0
@@ -41,7 +148,7 @@ TStart = ""
 TEnd = ""
 FStart = "" 
 FEnd = ""
-
+#@@@@@@@@@@@@@@@@ sensor @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 usbport='/dev/ttyAMA0'
 por = serial.Serial(usbport,115200,timeout=15.0)
 por.flushInput()
@@ -51,8 +158,26 @@ RepeatCountList = []
 Bi= 0
 Ri = 0
 i = 0
+#BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB
+sf1=0
+sf2=0
+sf3=0
+sf4=0
+sf5=0
+sf6=0
+sf7=0
+sf8=0
+NewAngle1 =0
+NewAngle2 =0
+NewAngle3 =0
+NewAngle4 =0
+NewAngle5 =0
+NewAngle6 =0
+NewAngle7 =0
+NewAngle8 =0
+#TTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT
 
-String = "#W255,000,000,."
+
 #########################################################################################################################################################################################
 def repeat4function():	
 	global Bi
@@ -164,8 +289,7 @@ def stringdataextractor(String):
 				if String[k] == "<":
 					RepeatCountList.append(int(String[k-2:k]))
 	else :
-		#print  "in pause"
-		pass
+		print  "in pause"
 
 def basicrepeat(NoOfTimes, Start, End):
 	global i
@@ -323,7 +447,7 @@ def finalstringprocessor(String):
 def ping():
 	time.sleep(0.005)
 	global i
-	print "ping******************************************"
+	print "ping"
 	SenNo = int(String[i+1])
 	i = i+2
 	#print SenNo
@@ -337,17 +461,15 @@ def ping():
 	elif SenNo == 2:
 		FTs = "FV201"
 	elif SenNo == 3:
-		FTs = "FV501"
-	elif SenNo == 4:
-		FTs = "FV401"
+		FTs = "FV301"
 	por.write(FTs)
 	while data != "#":
 		data = por.read(1)
 		if data == "\n" or data == "\r":
 			data = ""
 		temp= temp+data
-	#print temp
-	#print temp[1:4]
+	print temp
+	print temp[1:4]
 	tpfile = open("t_p.txt","w")
 	tpfile.write("p\n")
 	tpfile.close()
@@ -374,32 +496,27 @@ def calibrate():
 		FTs = "FV201"
 	elif SenNo == 5:
 		FTs = "FV301"
-	elif SenNo == 4:
-		FTs = "FV401"
 	while True:
-		data = ""
-		temp = ""
 		por.write(FTs)
-		#time.sleep(1)
 		while data != "#":
 			data = por.read(1)
 			if data == "\n" or data == "\r":
 				data = ""
 			temp= temp+data
-		#print temp
-		#print temp[1:4]
-		
+		print temp
+		print temp[1:4]
 		tpfile = open("t_p.txt","w")
 		tpfile.write("p\n")
 		tpfile.close()
 		pf = open("ping.txt","w")
 		pf.write(temp[1:4])	
 		pf.close()
-		time.sleep(0.5)
+		time.sleep(.4)
 def led():
 	time.sleep(0.005)	
 	global String
 	global i
+	print "led"*1000
 	por.write(String[i:i+13])
 	i=i+13
 
@@ -432,8 +549,6 @@ def map():
 		FT = "FV120."
 	elif port == "2":
 		FT = "FV210."
-	elif port == "4":
-		FT = "FV410."
 	print omn
 	print omx
 	print servono
@@ -484,7 +599,6 @@ def buzzer():
 	i=i+4
 
 def touch():
-	print "touch program s running"
 	global i
 	por.write(String[i:i+3])
 	i=i+3
@@ -558,7 +672,10 @@ def sensor():
 	string = ""
 	data = "0"
 	
+	#usbport1='/dev/ttyAMA0'
+	#por1 = serial.Serial(usbport1,9600,timeout=15.0)
 	por.flushInput()
+	#print "senosreeeeeeeeee"
 	file = open('workfile.txt', 'a')
 	
 	class serial_read_file_write(threading.Thread):
@@ -613,9 +730,7 @@ def sensor():
 			elif SensorPort == "2":
 				FT = "FV210"
 			elif SensorPort == "3":
-				FT = "FV510"
-			elif SensorPort == "4":
-				FT = "FV410"
+				FT = "FV310"
 			data = ""
 			temp = ""
 			
@@ -841,10 +956,11 @@ def sensor():
 
 #$$$$$$$$$$$$$$$$
 #$$$$$$$$$$$$$$$$$$$$$$$$$$$$
-#******************************************************************************************************************************
-#**********               servo code updatad on 21st november                                       **********************************
+#************************************************ servo motor updated on 23rd nov 2015 **********************************************************************
 def servo():
         global i
+        #print "servo"
+        #print String[i:i+8]
         MotorNo = int(String[i+1:i+2])
         NewAngle = int(String[i+3:i+6])
         Speed = int(String[i+7:i+8])
@@ -854,6 +970,7 @@ def servo():
         #por.write(String[i:i+8])
         i=i+8
         insideservo(MotorNo, NewAngle, Speed)
+
 def insideservo(ServoNo, NewAngle, Speed):
         print NewAngle
         global S1OldAngle
@@ -867,16 +984,17 @@ def insideservo(ServoNo, NewAngle, Speed):
         delay = (10-Speed)*0.004
         b= 50
         if ServoNo == 1:
-		s=time.time()
                 if Speed == 1:
                         os.system("echo 0="+str(NewAngle+50)+" > /dev/servoblaster")
                         S1OldAngle = NewAngle
                 elif  NewAngle+50 > S1OldAngle+50:
+                        #print str(S1OldAngle)+"old aangle >>"
                         b=S1OldAngle+50
                         while b < NewAngle+1+50 and b<231:
                                 os.system("echo 0="+str(b)+" > /dev/servoblaster")
                                 b=b+1
                                 time.sleep(delay)
+                                #print b
                         S1OldAngle = NewAngle
                 elif  NewAngle+50 < S1OldAngle+50:
                         b=S1OldAngle+50
@@ -884,14 +1002,15 @@ def insideservo(ServoNo, NewAngle, Speed):
                                 b=b-1
                                 os.system("echo 0="+str(b)+" > /dev/servoblaster")
                                 time.sleep(delay)
+                                #print b
                         S1OldAngle = NewAngle
                 else :
                         pass
-		print time.time()-s
- 	elif ServoNo == 2:
+
+	elif ServoNo == 2:
                 if Speed == 1:
                         os.system("echo 1="+str(NewAngle+50)+" > /dev/servoblaster")
-                        S2OldAngle = NewAngle
+                        S1OldAngle = NewAngle
                 elif  NewAngle+50 > S2OldAngle+50:
                         #print str(S2OldAngle)+"old aangle >>"
                         b=S2OldAngle+50
@@ -912,10 +1031,12 @@ def insideservo(ServoNo, NewAngle, Speed):
                 else :
                         pass
 
+
+
 	elif ServoNo == 3:
                 if Speed == 1:
                         os.system("echo 2="+str(NewAngle+50)+" > /dev/servoblaster")
-                        S3OldAngle = NewAngle
+                        S1OldAngle = NewAngle
                 elif  NewAngle+50 > S3OldAngle+50:
                         #print str(S3OldAngle)+"old aangle >>"
                         b=S3OldAngle+50
@@ -936,10 +1057,10 @@ def insideservo(ServoNo, NewAngle, Speed):
                 else :
                         pass
 
-	elif ServoNo == 4:
+        elif ServoNo == 4:
                 if Speed == 1:
                         os.system("echo 3="+str(NewAngle+50)+" > /dev/servoblaster")
-                        S4OldAngle = NewAngle
+                        S1OldAngle = NewAngle
                 elif  NewAngle+50 > S4OldAngle+50:
                         print str(S4OldAngle)+"old aangle >>"
                         b=S4OldAngle+50
@@ -959,10 +1080,14 @@ def insideservo(ServoNo, NewAngle, Speed):
                         S4OldAngle = NewAngle
                 else :
                         pass
+
+
+
+
 	elif ServoNo == 5:
                 if Speed == 1:
                         os.system("echo 4="+str(NewAngle+50)+" > /dev/servoblaster")
-                        S5OldAngle = NewAngle
+                        S1OldAngle = NewAngle
                 elif  NewAngle+50 > S5OldAngle+50:
                         #print str(S5OldAngle)+"old aangle >>"
                         b=S5OldAngle+50
@@ -982,10 +1107,10 @@ def insideservo(ServoNo, NewAngle, Speed):
                         S5OldAngle = NewAngle
                 else :
                         pass
-	elif ServoNo == 6:
+        elif ServoNo == 6:
                 if Speed == 1:
                         os.system("echo 5="+str(NewAngle+50)+" > /dev/servoblaster")
-                        S6OldAngle = NewAngle
+                        S1OldAngle = NewAngle
                 elif  NewAngle+50 > S6OldAngle+50:
                         #print str(S6OldAngle)+"old aangle >>"
                         b=S6OldAngle+50
@@ -1007,50 +1132,55 @@ def insideservo(ServoNo, NewAngle, Speed):
                         pass
 
 
-	elif ServoNo == 7:
+        elif ServoNo == 7:
                 if Speed == 1:
                         os.system("echo 6="+str(NewAngle+50)+" > /dev/servoblaster")
-                        S7OldAngle = NewAngle
+                        S1OldAngle = NewAngle
                 elif  NewAngle+50 > S7OldAngle+50:
+                        #print str(S7OldAngle)+"old aangle >>"
                         b=S7OldAngle+50
                         while b < NewAngle+1+50 and b<231:
-                                os.system("echo 6="+str(b)+" > /dev/servoblaster")
+                                os.system("echo ="+str(b)+" > /dev/servoblaster")
                                 b=b+1
                                 time.sleep(delay)
-                        S7OldAngle = NewAngle
+                                #print b
+                        S6OldAngle = NewAngle
                 elif  NewAngle+50 < S7OldAngle+50:
                         b=S7OldAngle+50
                         while b>51 and b > NewAngle+50-1:
                                 b=b-1
                                 os.system("echo 6="+str(b)+" > /dev/servoblaster")
                                 time.sleep(delay)
+                                #print b
                         S7OldAngle = NewAngle
                 else :
                         pass
-	elif ServoNo == 8:
+        elif ServoNo == 8:
                 if Speed == 1:
                         os.system("echo 7="+str(NewAngle+50)+" > /dev/servoblaster")
-                        S8OldAngle = NewAngle
+                        S1OldAngle = NewAngle
                 elif  NewAngle+50 > S8OldAngle+50:
+                        #print str(S8OldAngle)+"old aangle >>"
                         b=S8OldAngle+50
                         while b < NewAngle+1+50 and b<231:
-                                os.system("echo 7="+str(b)+" > /dev/servoblaster")
+                                os.system("echo 0="+str(b)+" > /dev/servoblaster")
                                 b=b+1
                                 time.sleep(delay)
+                                #print b
                         S8OldAngle = NewAngle
-                elif  NewAngle+50 < S8OldAngle+50:
+                elif  NewAngle+50 < S1OldAngle+50:
                         b=S8OldAngle+50
                         while b>51 and b > NewAngle+50-1:
                                 b=b-1
-                                os.system("echo 7="+str(b)+" > /dev/servoblaster")
+                                os.system("echo 0="+str(b)+" > /dev/servoblaster")
                                 time.sleep(delay)
+                                #print b
                         S8OldAngle = NewAngle
                 else :
                         pass
 
-	
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%servo%%%%%%%%%%%%%%%%%%%%
+#*************************************************************************************************************************************
 
 def lcd():
 	print "lcd"
@@ -1145,19 +1275,17 @@ def motor():
 
 
 def main_stringiterator():
-	s=time.time()	
 	global Bi
 	global Ri
 	global i 
 	Bi= 0
 	Ri = 0
 	i = 0			
-	#print String + "2>>>>>>>>>>>>>>>>>>>>>>>>string iterator>>>>>>>>>>>>>>>>>>>>>."
 	if String[i]=="Y":
 		return 0
 	slen = len(String)
 	while i<slen:
-	#hile String[i]!=".":
+	#while String[i]!=".":
 		if String[i] == "P":
 			ping()
 		elif String[i] == "W":
@@ -1172,6 +1300,7 @@ def main_stringiterator():
 			print "calibrate"
 			calibrate()	
 		elif String[i] == "Q":
+			#print "Touchf"
 			touch()
 		elif String[i] == "T":
 			delay()
@@ -1190,216 +1319,76 @@ def main_stringiterator():
 			
 		else:
 			i=i+1
-	print time.time()-s	
+	
 #****************************************************************************************************************************************************************************					
 
 def normaloperation():
-	#print "in normal operation"
+	print "in normal operation"
 	global nflag
 	global String
-	global appdata
+	global iotdata
 	while True:
 		if nflag == 1:
-			if appdata.strip() != "Y":
-	 		      	String = appdata.strip()
-				#print "normal"
-			else:
-				#print "special"
-				filels= open("laststring.txt","r")
-        	                ls=filels.readline()
-	                        filels.close()
-				String = ls.strip()
+			
+	 		String = iotdata.strip()
 		        stringdataextractor(String)
         		por.write("N")
-		        time.sleep(0.5)
+		        time.sleep(1)
 			lenr = len(RepeatCountList)
 			for c in range(0,lenr):
 				if RepeatCountList[c] == 0:
 					RepeatCountList[c] = 65535
+        		le=open("check","w")
         		main_stringiterator()
 			nflag = 0
 		elif nflag == 0:
 			pass
 		time.sleep(.1)
 def main():
-	f=open("main.txt","w")
-	#print "in sub main thread"
+	print "in iot main thread"
  	global BracketList 
         global RepeatCountList 
         global Bi
 	global Ri 
 	global i 
-	global appdata
+	global iotdata
 	global nflag
 	global String
+        flagfile=open("iotflag.txt","w")
+        flagfile.write(str(1)+"\n")
+        flagfile.close()
+        our_thread=threading.Thread(target =readfromcloud)
+        our_thread.setDaemon(True)
+        our_thread.start()
         our_thread=threading.Thread(target =normaloperation)
         our_thread.setDaemon(True)
         our_thread.start()
-	#por.write("FV012")
-	"""
-	data = ""
-        temp = ""
-	while data != "#":
-                data = por.read(1)
-               	if data == "\n" or data == "\r" :
-                	data =""
-			temp =temp+data
-        string = temp
-	"""
+	
 	while 1:
-                flagfile=open("flag.txt","r")
+		#print "N flag value = "+str(nflag)
+                flagfile=open("iotflag.txt","r")
                 flag = flagfile.readline()
                 flagfile.close()
                 if flag.strip() == "1":
-                        flagfile=open("flag.txt","w")
+                        flagfile=open("iotflag.txt","w")
                         flagfile.write(str(0)+"\n")
                         flagfile.close()
-                        file= open("appdata.txt","r")
-                        appdata =file.readline()
+                        file= open("iotdata.txt","r")
+                        iotdata =file.readline()
                         file.close()
-			#if appdata.strip().startswith("<3") :
-			if appdata.strip().startswith("U[") :
-                        	file= open("appdata.txt","w")
-	                        file.write("Y")
-         	                file.close()
-				s=appdata.strip()
-				#s = "<3|Botrio|**9591513038s4|."
-				data= s.split("|")
-				#print data[]
-				#print data[2]
+			if iotdata.strip() == "#W000,000,000,.":
 				file=open("wifi_mode.txt","w")
-				file.write("s")
-				file.close()
-				os.chdir("/etc/network")
-				os.system("rm interfaces")
-				file = open("interfaces.stamode","r")
-				lines = file.readlines()
-				i=0
-				for line in lines:
-				        if re.search("wpa-ssid",lines[i]):
-				                lines[i] = "\twpa-ssid "+"\""+data[0][2:]+"\""
-				        if re.search("wpa-psk",lines[i]):
-				                lines[i] = "\n\twpa-psk "+"\""+data[1][:-2]+"\""
-				        i=i+1
-				file=open("interfaces","w")
-				for lin in  lines:
-				        print lin
-				        file.write(lin)
-				file.close()
-				os.system("reboot")
-
-			if appdata.strip()== ".":
-		 		filels= open("appdata.txt","w")
-	                        filels.write("y\n")
-        	                filels.close()
-				por.write("N")
-				sys.exit(1)
-			if appdata.strip().startswith("#A"):
-				os.system("clear")
-				y=appdata.strip()	
-				Upart =re.findall("AU\([^\(]*\)",y)[0][3:-1]+"."
-		                Dpart =re.findall("AD\([^\(]*\)",y)[0][3:-1]+"."
-                		Rpart =re.findall("AR\([^\(]*\)",y)[0][3:-1]+"."
-		                Lpart =re.findall("AL\([^\(]*\)",y)[0][3:-1]+"."
-				#print  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
-				#print Upart
-				#print Dpart	
-				#Print Rpart	
-				#Print Lpart
-				#print  "&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"
-				while True:
-					
-                			flagfile=open("flag.txt","r")
-			                flag = flagfile.readline()
-			                flagfile.close()
-                			if flag.strip() == "1":
-						flagfile=open("flag.txt","w")
-			                        flagfile.write(str(0)+"\n")
-                        			flagfile.close()
-			                        file= open("appdata.txt","r")
-                        			appdata =file.readline()
-			                        print "*****inside acc***********"
-                        			print appdata.strip()
-			                        print "*****inside acc***********"
-                        			file.close()
-                        			Adata=appdata
-			                        print  "*"+Adata+"**"
-        	                		if Adata.strip() == "AU":
-	        		                        BracketList = []
-        	        		                BracketList = []
-                	        		        RepeatCountList = []
-                        	        		Bi= 0
-	                                		Ri = 0
-		                                	i = 0
-	        		                        String = Upart
-	        		                        #String = "W255,000,000,."
-        	        		                stringdataextractor(String)
-                	        		        print BracketList
-                        	        		print RepeatCountList
-		                	                main_stringiterator()
-        		                	        print "up"
-        	                		if Adata.strip() == "AD":
-	        		                        BracketList = []
-        	        		                BracketList = []
-                	        		        RepeatCountList = []
-                        	        		Bi= 0
-	                                		Ri = 0
-		                                	i = 0
-	        		                        String = Dpart
-	        		                        #String = "W000,255,000,."
-        	        		                stringdataextractor(String)
-                	        		        print BracketList
-                        	        		print RepeatCountList
-		                	                main_stringiterator()
-        		                	        print "down"
-        	                		if Adata.strip() == "AL":
-	        		                        BracketList = []
-        	        		                BracketList = []
-                	        		        RepeatCountList = []
-                        	        		Bi= 0
-	                                		Ri = 0
-		                                	i = 0
-	        		                        String = Lpart
-	        		                        #String = "W000,000,255,."
-        	        		                stringdataextractor(String)
-                	        		        print BracketList
-                        	        		print RepeatCountList
-		                	                main_stringiterator()
-        		                	        print "left"
-        	                		if Adata.strip() == "AR":
-	        		                        BracketList = []
-        	        		                BracketList = []
-                	        		        RepeatCountList = []
-                        	        		GBi= 0
-	                                		Ri = 0
-		                                	i = 0
-	        		                        String = Rpart
-	        		                        #String = "W000,000,000,."
-        	        		                stringdataextractor(String)
-                	        		        print BracketList
-                        	        		print RepeatCountList
-		                	                main_stringiterator()
-        		                	        print "right"
-						elif Adata.strip() == "AX":
-							por.write("N")
-							time.sleep(.05)
-                                			
-                        			elif Adata.strip() == ".":
-                        			        sys.exit(1)
-
-
-			else:
-				nflag = 1
+                                file.write("a")
+                                file.close()
+				i=open("iotdata.txt","w")
+				i.write("Y.")
+				i.close()
+                                os.chdir("/etc/network")
+                                os.system("rm interfaces")
+                                os.system("cp interfaces.apnmode interfaces")
+                                os.system("sudo reboot")
+			nflag = 1
+		else:
+			pass
+			#nflag = 0
 main()
-"""
-stringdataextractor(String)
-por.write("N")
-time.sleep(1)
-lenr = len(RepeatCountList)
-for c in range(0,lenr):
-	if RepeatCountList[c] == 0:
-		RepeatCountList[c] = 65535
-	print RepeatCountList[c]
-print RepeatCountList
-main_stringiterator()
-"""
