@@ -233,6 +233,7 @@ mode = file.readline().strip()
 file.close()
 
 if mode == "s":
+	time.sleep(30)
         our_thread=threading.Thread(target =switch)
         our_thread.setDaemon(True)
         our_thread.start()
