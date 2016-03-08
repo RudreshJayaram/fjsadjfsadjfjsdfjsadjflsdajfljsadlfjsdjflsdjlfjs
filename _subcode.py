@@ -10,7 +10,7 @@ GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
 nflag = 0
 appdata = "Y"
-"""
+
 os.system('sudo ./servod')
 os.system("echo 0=50 > /dev/servoblaster")
 os.system("echo 1=50 > /dev/servoblaster")
@@ -20,7 +20,7 @@ os.system("echo 4=50 > /dev/servoblaster")
 os.system("echo 5=50 > /dev/servoblaster")
 os.system("echo 6=50 > /dev/servoblaster")
 os.system("echo 7=50 > /dev/servoblaster")
-"""
+
 S1OldAngle = 0
 S2OldAngle = 0
 S3OldAngle = 0
