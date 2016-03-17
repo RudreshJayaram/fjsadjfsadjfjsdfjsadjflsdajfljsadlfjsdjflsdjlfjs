@@ -77,7 +77,7 @@ os.system("sudo update-rc.d hostapd enable")
 os.system("sudo update-rc.d isc-dhcp-server enable")
 os.system("sudo mv /usr/share/dbus-1/system-services/fi.epitest.hostap.WPASupplicant.service ~/")
 
-os.system("mv /etc/rc.local /etc/rc.local.bkp")
+#os.system("mv /etc/rc.local /etc/rc.local.bkp")
 os.system("cp rc.local.grp /etc/rc.local")
 os.system( "chmod 777 /etc/rc.local")
 
