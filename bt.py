@@ -2,6 +2,8 @@ import time
 import serial
 import os
 os.chdir("/root/revolution")
+os.system("sudo python _maincode.py")
+"""
 usbport='/dev/ttyAMA0'
 por = serial.Serial(usbport,115200,timeout=3.0)
 por.flushInput()
@@ -44,3 +46,4 @@ elif board==1 and  myset==1:
 	os.system("sudo python _maincode.py")
 
 #*************************************************************************
+"""
