@@ -1,6 +1,6 @@
 import time
 import os
-os.system("sudo apt-get update")
+#os.system("sudo apt-get update")
 os.chdir("/root/")
 
 #************************** This is the servoblaster installation ***********************************
