@@ -216,6 +216,7 @@ def pingtouch():
 def main():
 	while True:
 		os.system("sudo python _subcode.py")
+		"""
 		time.sleep(3)
 		file= open("appdata.txt","r")
 		breakdata = file.readline().strip()
@@ -224,6 +225,7 @@ def main():
 			c.shutdown(2)
 			c.close()
 			sys.exit(1)
+		"""
 
 
 #**************************************************************** code starts here  *********************************************************************************
