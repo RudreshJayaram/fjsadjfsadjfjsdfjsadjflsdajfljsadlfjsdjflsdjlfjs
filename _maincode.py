@@ -188,6 +188,8 @@ def appdatacollection():
 	
 
 def pingtouch():
+	r = open("pingworking.txt","w")
+	r.close()
 	global c
         while True:
                 try:
