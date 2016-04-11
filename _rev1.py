@@ -130,6 +130,6 @@ os.system("clear")
 time.sleep(2)
 
 print "all done"
-#os.system("sudo reboot")
+os.system("sudo reboot")
 #*******************************************************************************************************************
 
