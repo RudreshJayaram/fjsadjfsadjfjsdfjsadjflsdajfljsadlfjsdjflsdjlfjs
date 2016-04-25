@@ -289,7 +289,7 @@ else:
 	s = socket.socket(socket.AF_INET , socket.SOCK_STREAM)
 	s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR,1)
 	host = "1.2.3.4"
-	port=8891
+	port=8899
 	wifi_ok = 0
 	s.bind((host, port))
 	s.listen(5)
