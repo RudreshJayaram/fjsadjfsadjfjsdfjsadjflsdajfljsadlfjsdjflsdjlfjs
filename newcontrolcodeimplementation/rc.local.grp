@@ -1,0 +1,3 @@
+#!/bin/sh -e
+python /root/bt.py  
+exit 0

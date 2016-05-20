@@ -1,0 +1,234 @@
+import socket
+import time
+import os
+import sys
+import serial
+import threading
+import re
+import RPi.GPIO as GPIO
+GPIO.setwarnings(False) 
+GPIO.setmode(GPIO.BCM)
+nflag = 0
+appdata = "Y"
+
+os.system('sudo ./servod')
+os.system("echo 0=50 > /dev/servoblaster")
+os.system("echo 1=50 > /dev/servoblaster")
+os.system("echo 2=50 > /dev/servoblaster")
+os.system("echo 3=50 > /dev/servoblaster")
+os.system("echo 4=50 > /dev/servoblaster")
+os.system("echo 5=50 > /dev/servoblaster")
+os.system("echo 6=50 > /dev/servoblaster")
+os.system("echo 7=50 > /dev/servoblaster")
+
+S1OldAngle = 0
+S2OldAngle = 0
+S3OldAngle = 0
+S4OldAngle = 0
+S5OldAngle = 0
+S6OldAngle = 0
+S7OldAngle = 0
+S8OldAngle = 0
+
+NoOfSensors =""
+SensorPort =""  
+ComparingValue = 0
+LogicalOpr = ""
+SensorString =  ""
+TruePart = ""
+FalsePart = ""
+TStart = ""
+TEnd = ""
+FStart = "" 
+FEnd = ""
+
+usbport='/dev/ttyAMA0'
+por = serial.Serial(usbport,115200,timeout=15.0)
+por.flushInput()
+
+BracketList = []
+RepeatCountList = []
+Bi= 0
+Ri = 0
+i = 0
+
+String = "#W255,000,000,."
+#########################################################################################################################################################################################
+def repeat4function():	
+	global Bi
+	global Ri
+	global i
+	if String[BracketList[Bi+2]] == "<" and String[BracketList[Bi+5]] == ">":
+		for i in range(0, RepeatCountList[Ri]):
+			tempi = i
+			tempBi = Bi
+			tempRi = Ri
+			basicrepeat(1, BracketList[Bi]+1 ,BracketList[Bi+1]-3)
+			Ri=Ri+1
+			Bi=Bi+1
+			i=BracketList[Bi+1]
+			repeat3functionfor4()
+			basicrepeat(1, BracketList[Bi]+1 ,BracketList[Bi+1])
+			i = tempi
+			Bi = tempBi
+			Ri = tempRi
+		i=BracketList[Bi+7]
+		Bi=Bi+8
+		Ri=Ri+4
+	elif String[BracketList[Bi+2]] == ">" and String[BracketList[Bi+5]] == ">":		
+		for i in range(0, RepeatCountList[Ri]):
+			tempi = i
+			tempBi = Bi
+			tempRi = Ri
+			Ri=Ri+1
+			basicrepeat(1, BracketList[Bi]+1 ,BracketList[Bi+1]-3)
+			Bi=Bi+1
+			i=BracketList[Bi+1]
+			basicrepeat( RepeatCountList[Ri],BracketList[Bi]+1, BracketList[Bi+1])
+			Ri=Ri+1
+			Bi=Bi+1
+			i=BracketList[Bi+1]
+			
+			basicrepeat(1, BracketList[Bi]+1 ,BracketList[Bi+1]-3)
+			Bi=Bi+1
+			i=BracketList[Bi+1]
+			repeat2functionfor2()
+			Bi=Bi-1
+			#print Bi
+			#print Ri
+			basicrepeat(1, BracketList[Bi]+1 ,BracketList[Bi+1])
+			i = tempi
+			Bi = tempBi
+			Ri = tempRi
+		i=BracketList[Bi+7]
+		Bi=Bi+8
+		Ri=Ri+4
+	elif String[BracketList[Bi+2]] == "<" and String[BracketList[Bi+5]] == "<":
+		for i in range(0, RepeatCountList[Ri]):
+			tempi = i
+			tempBi = Bi
+			tempRi = Ri
+			Ri=Ri+1
+			basicrepeat(1, BracketList[Bi]+1 ,BracketList[Bi+1]-3)
+			Bi=Bi+1
+			i=BracketList[Bi+1]
+			repeat2functionfor2()
+			Bi=Bi-1
+			basicrepeat(1, BracketList[Bi]+1 ,BracketList[Bi+1]-3)
+			Bi=Bi+1
+			basicrepeat(RepeatCountList[Ri], BracketList[Bi]+1 ,BracketList[Bi+1])
+			Ri=Ri+1
+			Bi=Bi+1
+			basicrepeat(1, BracketList[Bi]+1 ,BracketList[Bi+1])
+			i = tempi
+			Bi = tempBi
+			Ri = tempRi
+		i=BracketList[Bi+7]
+		Bi=Bi+8
+		Ri=Ri+4
+	elif String[BracketList[Bi+2]] == ">" and String[BracketList[Bi+5]] == "<":
+		for i in range(0, RepeatCountList[Ri]):
+			tempi = i
+			tempBi = Bi
+			tempRi = Ri
+			Ri=Ri+1
+			basicrepeat(1, BracketList[Bi]+1 ,BracketList[Bi+1]-3)
+			Bi=Bi+1
+			i=BracketList[Bi+1]
+			basicrepeat(RepeatCountList[Ri], BracketList[Bi]+1 ,BracketList[Bi+1])
+			Ri=Ri+1
+			Bi=Bi+1
+			basicrepeat(1, BracketList[Bi]+1 ,BracketList[Bi+1]-3)
+			Bi=Bi+1
+			basicrepeat(RepeatCountList[Ri], BracketList[Bi]+1 ,BracketList[Bi+1])
+			Ri=Ri+1
+
+def ping():
+	time.sleep(.5)
+	global i
+	SenNo = int(String[i+1])
+	i = i+2
+	
+	data = ""
+	temp = ""
+	if SenNo == 0:
+		FTs = "FV012"
+	elif SenNo == 1:
+		FTs = "FV102"
+	elif SenNo == 2:
+		FTs = "FV201"
+	elif SenNo == 3:
+		FTs = "FV501"
+	elif SenNo == 4:
+		FTs = "FV401"
+	por.write(FTs)
+	while data != "#":
+		data = por.read(1)
+		if data == "\n" or data == "\r":
+			data = ""
+		temp= temp+data
+	tpfile = open("t_p.txt","w")
+	tpfile.write("p\n")
+	tpfile.close()
+	pf = open("ping.txt","w")
+	pf.write(temp[1:4])	
+	pf.close()
+
+def calibrate():
+	time.sleep(0.5)
+	global i
+	SenNo = int(String[i+1])
+	i = i+2
+	print SenNo
+	
+	data = ""
+	temp = ""
+	if SenNo == 0:
+		FTs = "FV012"
+	elif SenNo == 1:
+		FTs = "FV102"
+	elif SenNo == 2:
+		FTs = "FV201"
+	elif SenNo == 5:
+		FTs = "FV301"
+	elif SenNo == 3:                  # for pg sensor 
+		FTs = "FV401"
+	while True:
+		data = ""
+		temp = ""
+		por.write(FTs)
+		while data != "#":
+			data = por.read(1)
+			if data == "\n" or data == "\r":
+				data = ""
+			temp= temp+data
+		
+		tpfile = open("t_p.txt","w")
+		tpfile.write("p\n")
+		tpfile.close()
+		pf = open("ping.txt","w")
+		pf.write(temp[1:4])	
+		pf.close()
+		time.sleep(0.5)
+
+def touch():
+	global i
+	por.write(String[i:i+3])
+	i=i+3
+	por.write("Q")
+	while True:
+		data = ""
+		temp = ""
+		while data != "#":
+			data = por.read(1)
+			if data == "\n" :
+				data = ""
+			temp= temp+data
+		touchdata = temp	
+		tpfile = open("t_p.txt","w")
+		tpfile.write("t\n")
+		tpfile.close()
+		file =open("touch.txt","w")
+		file.write(touchdata)
+		file.close()
+
